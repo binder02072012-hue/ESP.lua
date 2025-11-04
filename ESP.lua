@@ -296,3 +296,4 @@ keyButton.MouseButton1Click:Connect(function()
         warn("Неверный ключ!")
     end
 end)
+
