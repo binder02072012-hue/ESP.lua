@@ -29,6 +29,7 @@ end
 -- GUI
 -- =========================================
 local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+screenGui.ResetOnSpawn = false  -- GUI не пропадает при респавне
 
 -- Ввод ключа
 local keyFrame = Instance.new("Frame", screenGui)
@@ -115,7 +116,8 @@ end
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
         if ESPEnabled then createESP(player) end
-        character:WaitForChild("Humanoid").Died:Connect(function() removeESP(player) end)
+        -- ESP теперь не удаляется при смерти
+        -- character:WaitForChild("Humanoid").Died:Connect(function() removeESP(player) end)
     end)
 end)
 Players.PlayerRemoving:Connect(removeESP)
@@ -141,6 +143,23 @@ local function createMainGUI()
     mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
     mainFrame.BorderSizePixel = 0
     Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,12)
+
+    -- =========================================
+    -- Кнопка закрытия (крестик)
+    -- =========================================
+    local closeButton = Instance.new("TextButton", mainFrame)
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
+    closeButton.TextColor3 = Color3.fromRGB(255,255,255)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextScaled = true
+    closeButton.Text = "X"
+    Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0,5)
+
+    closeButton.MouseButton1Click:Connect(function()
+        mainFrame:Destroy()
+    end)
 
     local title = Instance.new("TextLabel", mainFrame)
     title.Size = UDim2.new(1,0,0,30)
@@ -237,52 +256,16 @@ local function createMainGUI()
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
         btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100,100,100)}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80,80,80)}):Play()
         end)
         btn.MouseLeave:Connect(function()
             TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
         end)
+
         btn.MouseButton1Click:Connect(function()
             setGravity(g)
         end)
     end
-
-    -- =========================================
-    -- Drag & Drop
-    -- =========================================
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-
-    mainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = mainFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    mainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
 end
 
 -- =========================================
@@ -292,8 +275,7 @@ keyButton.MouseButton1Click:Connect(function()
     if keyBox.Text == correctKey then
         createMainGUI()
     else
-        keyBox.Text = ""
-        warn("Неверный ключ!")
+        keyLabel.Text = "Неверный ключ!"
+        keyLabel.TextColor3 = Color3.fromRGB(255,50,50)
     end
 end)
-
