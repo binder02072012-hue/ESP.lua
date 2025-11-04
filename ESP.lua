@@ -13,7 +13,7 @@ local ESPEnabled = true
 local ESPTags = {}
 local savedPosition = nil
 local flying = false
-local correctKey = "MaXooN_i"
+local correctKey = "MaXooN_i1"
 local mainFrame = nil
 local menuVisible = false
 
@@ -258,3 +258,4 @@ UserInputService.InputBegan:Connect(function(input, gp)
 		mainFrame.Visible = menuVisible
 	end
 end)
+
