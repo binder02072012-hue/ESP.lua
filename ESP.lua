@@ -1,4 +1,6 @@
--- Services
+-- =========================================
+-- Услуги Roblox
+-- =========================================
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -11,12 +13,12 @@ local ESPEnabled = true
 local ESPTags = {}
 local savedPosition = nil
 local flying = false
-local correctKey = "MaXooN_i1"
+local correctKey = "MaXooN_i"
 
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- BodyForce для Gravity
+-- Сила для регулировки гравитации
 local bodyForce = Instance.new("BodyForce")
 bodyForce.Parent = HumanoidRootPart
 
@@ -29,9 +31,9 @@ end
 -- GUI
 -- =========================================
 local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-screenGui.ResetOnSpawn = false  -- GUI не пропадает при респавне
+screenGui.ResetOnSpawn = false
 
--- Ввод ключа
+-- Окно ввода ключа
 local keyFrame = Instance.new("Frame", screenGui)
 keyFrame.Size = UDim2.new(0, 300, 0, 150)
 keyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
@@ -114,7 +116,7 @@ local function updateAllESP()
 end
 
 Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
+    player.CharacterAdded:Connect(function()
         if ESPEnabled then createESP(player) end
     end)
 end)
@@ -123,7 +125,7 @@ Players.PlayerRemoving:Connect(removeESP)
 for _, player in pairs(Players:GetPlayers()) do
     if player.Character then
         if ESPEnabled then createESP(player) end
-        player.CharacterAdded:Connect(function(character)
+        player.CharacterAdded:Connect(function()
             if ESPEnabled then createESP(player) end
         end)
     end
@@ -152,7 +154,7 @@ local function createMainGUI()
     Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,12)
     mainVisible = true
 
-    -- === Перемещение мышкой ===
+    -- Перетаскивание мышкой
     local dragging, dragStart, startPos
     mainFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -174,9 +176,7 @@ local function createMainGUI()
         end
     end)
 
-    -- =========================================
     -- Кнопка закрытия
-    -- =========================================
     local closeButton = Instance.new("TextButton", mainFrame)
     closeButton.Size = UDim2.new(0, 30, 0, 30)
     closeButton.Position = UDim2.new(1, -35, 0, 5)
@@ -199,7 +199,7 @@ local function createMainGUI()
     title.Font = Enum.Font.GothamBold
     title.TextScaled = true
 
-    -- ESP toggle
+    -- ESP toggle (вверху)
     local toggleESP = Instance.new("TextButton", mainFrame)
     toggleESP.Size = UDim2.new(0.8,0,0,30)
     toggleESP.Position = UDim2.new(0.1,0,0,40)
@@ -215,10 +215,35 @@ local function createMainGUI()
         updateAllESP()
     end)
 
-    -- Сохранить позицию
+    -- Gravity кнопки (под ESP)
+    local gravities = {50, 70, 100, 192}
+    for i, g in ipairs(gravities) do
+        local btn = Instance.new("TextButton", mainFrame)
+        btn.Size = UDim2.new(0.8,0,0,30)
+        btn.Position = UDim2.new(0.1,0,0,80 + (i-1)*35)
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextScaled = true
+        btn.Text = "Gravity "..g
+        btn.BorderSizePixel = 0
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80,80,80)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
+        end)
+        btn.MouseButton1Click:Connect(function()
+            setGravity(g)
+        end)
+    end
+
+    -- Кнопки снизу
     local saveButton = Instance.new("TextButton", mainFrame)
     saveButton.Size = UDim2.new(0.8,0,0,30)
-    saveButton.Position = UDim2.new(0.1,0,0,80)
+    saveButton.Position = UDim2.new(0.1,0,1,-70)
+    saveButton.AnchorPoint = Vector2.new(0,1)
     saveButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
     saveButton.TextColor3 = Color3.fromRGB(255,255,255)
     saveButton.Font = Enum.Font.GothamBold
@@ -233,10 +258,10 @@ local function createMainGUI()
         end
     end)
 
-    -- Летать
     local flyButton = Instance.new("TextButton", mainFrame)
     flyButton.Size = UDim2.new(0.8,0,0,30)
-    flyButton.Position = UDim2.new(0.1,0,0,120)
+    flyButton.Position = UDim2.new(0.1,0,1,-30)
+    flyButton.AnchorPoint = Vector2.new(0,1)
     flyButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
     flyButton.TextColor3 = Color3.fromRGB(255,255,255)
     flyButton.Font = Enum.Font.GothamBold
@@ -264,30 +289,6 @@ local function createMainGUI()
             flying = false
         end)
     end)
-
-    -- Gravity кнопки
-    local gravities = {50,70,100,192}
-    for i, g in ipairs(gravities) do
-        local btn = Instance.new("TextButton", mainFrame)
-        btn.Size = UDim2.new(0.8,0,0,30)
-        btn.Position = UDim2.new(0.1,0,0,160 + (i-1)*35)
-        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-        btn.TextColor3 = Color3.fromRGB(255,255,255)
-        btn.Font = Enum.Font.GothamBold
-        btn.TextScaled = true
-        btn.Text = "Gravity "..g
-        btn.BorderSizePixel = 0
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80,80,80)}):Play()
-        end)
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
-        end)
-        btn.MouseButton1Click:Connect(function()
-            setGravity(g)
-        end)
-    end
 end
 
 -- =========================================
