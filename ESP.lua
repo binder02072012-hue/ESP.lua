@@ -1,18 +1,36 @@
+-- Services
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
+-- =========================================
+-- Переменные
+-- =========================================
 local ESPEnabled = true
 local ESPTags = {}
 local savedPosition = nil
 local flying = false
-local correctKey = "123"
+local correctKey = "MaXooN_i"
+
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- BodyForce для Gravity
+local bodyForce = Instance.new("BodyForce")
+bodyForce.Parent = HumanoidRootPart
+
+local function setGravity(value)
+    local forceY = workspace.Gravity - value
+    bodyForce.Force = Vector3.new(0, HumanoidRootPart.AssemblyMass * forceY, 0)
+end
 
 -- =========================================
--- Вход по ключу
+-- GUI
 -- =========================================
 local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 
+-- Ввод ключа
 local keyFrame = Instance.new("Frame", screenGui)
 keyFrame.Size = UDim2.new(0, 300, 0, 150)
 keyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
@@ -51,7 +69,7 @@ keyButton.Text = "Войти"
 Instance.new("UICorner", keyButton).CornerRadius = UDim.new(0,8)
 
 -- =========================================
--- Функции ESP
+-- ESP функции
 -- =========================================
 local function createESP(player)
     local character = player.Character
@@ -94,7 +112,6 @@ local function updateAllESP()
     end
 end
 
--- Подписка на игроков
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
         if ESPEnabled then createESP(player) end
@@ -113,14 +130,14 @@ for _, player in pairs(Players:GetPlayers()) do
 end
 
 -- =========================================
--- Основной GUI
+-- Главное меню
 -- =========================================
 local function createMainGUI()
     keyFrame:Destroy()
 
     local mainFrame = Instance.new("Frame", screenGui)
-    mainFrame.Size = UDim2.new(0, 250, 0, 200)
-    mainFrame.Position = UDim2.new(0.5, -125, 0.5, -100)
+    mainFrame.Size = UDim2.new(0, 300, 0, 350)
+    mainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
     mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
     mainFrame.BorderSizePixel = 0
     Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,12)
@@ -170,7 +187,7 @@ local function createMainGUI()
         end
     end)
 
-    -- Лететь
+    -- Летать
     local flyButton = Instance.new("TextButton", mainFrame)
     flyButton.Size = UDim2.new(0.8,0,0,30)
     flyButton.Position = UDim2.new(0.1,0,0,120)
@@ -204,6 +221,31 @@ local function createMainGUI()
             flying = false
         end)
     end)
+
+    -- Gravity кнопки
+    local gravities = {50,70,100,192}
+    for i, g in ipairs(gravities) do
+        local btn = Instance.new("TextButton", mainFrame)
+        btn.Size = UDim2.new(0.8,0,0,30)
+        btn.Position = UDim2.new(0.1,0,0,160 + (i-1)*35)
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextScaled = true
+        btn.Text = "Gravity "..g
+        btn.BorderSizePixel = 0
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100,100,100)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
+        end)
+        btn.MouseButton1Click:Connect(function()
+            setGravity(g)
+        end)
+    end
 
     -- =========================================
     -- Drag & Drop
